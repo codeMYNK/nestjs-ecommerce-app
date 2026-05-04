@@ -1,0 +1,55 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+.next/
+**/ .next/
+out/
+**/out/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# NestJS specific
+/api/coverage/
+/api/test-results/
+
+# NextJS specific
+/frontend/.vercel
+/frontend/analyze/
+
+# OS and temporary files
+Thumbs.db
+desktop.ini
+*.tmp
+
+
+# Local database data
+/api/pgdata/
+/api/mongodb_data/
+
+# Docker logs
+docker-compose.log
