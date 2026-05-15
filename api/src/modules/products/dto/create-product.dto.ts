@@ -10,6 +10,7 @@ import {
   IsString,
   MaxLength,
   Min,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateProductDto {
@@ -28,6 +29,8 @@ export class CreateProductDto {
     example: 'High-quality wireless headphones with noise cancellation',
     required: false,
   })
+  @IsString()
+  @IsOptional()
   description?: string;
 
   @ApiProperty({
@@ -72,11 +75,12 @@ export class CreateProductDto {
   imageUrl?: string;
 
   @ApiProperty({
-    description: 'Product Category',
-    example: 'Electronics',
+    description: 'Product Category ID (UUID)',
+    example: 'c4ebee9b-629e-40fb-82bc-65dcfa704972',
     required: false,
   })
   @IsString()
+  @IsUUID()
   @IsOptional()
   category?: string;
 

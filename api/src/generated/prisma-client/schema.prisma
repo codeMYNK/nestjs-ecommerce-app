@@ -71,8 +71,8 @@ model Product {
   orderItems OrderItem[]
   cartItems  CartItem[]
 
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
