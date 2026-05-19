@@ -10,6 +10,9 @@ import {
   OrderResponseDto,
 } from './dto/order-responses.dto';
 import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
+import { QueryOrderDto } from './dto/query-order.dto';
+import { contains } from 'class-validator';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -77,7 +80,7 @@ export class OrdersService {
               product: true,
             },
           },
-          user: true
+          user: true,
         },
       });
 
@@ -90,6 +93,193 @@ export class OrdersService {
       return newOrder;
     });
     return this.wrap(order);
+  }
+
+  async findAllForAdmin(query: QueryOrderDto): Promise<{
+    data: OrderResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { page = 1, limit = 10, status, search } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (status) where.status = status;
+    if (search)
+      where.OR = [
+        { id: { contains: search, mode: 'insensitive' } },
+        { orderNumber: { contains: search, mode: 'insensitive' } },
+      ];
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((o) => this.map(o)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async findAll(
+    userId: string,
+    query: QueryOrderDto,
+  ): Promise<{
+    data: OrderResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { page = 1, limit = 10, status, search } = query;
+    const skip = (page - 1) * limit;
+    const where: any = { userId };
+
+    if (status) where.status = status;
+    if (search) where.OR = [{ id: { contains: search, mode: 'insensitive' } }];
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((o) => this.map(o)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async findOne(
+    id: string,
+    userId?: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+    if (userId) where.userId = userId;
+
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+    return this.wrap(order);
+  }
+
+  async update(
+    id: string,
+    updateOrderDto: UpdateOrderDto,
+    userId?: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+    if (userId) where.userId = userId;
+
+    const existing = await this.prisma.order.findFirst({
+      where,
+    });
+    if (!existing) throw new NotFoundException(`Order ${id} not found`);
+
+    const updated = await this.prisma.order.update({
+      where: { id },
+      data: updateOrderDto,
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    return this.wrap(updated);
+  }
+
+  async cancel(
+    id: string,
+    userId?: string,
+  ): Promise<OrderApiResponseDto<OrderResponseDto>> {
+    const where: any = { id };
+    if (userId) where.userId = userId;
+
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        orderItems: true,
+        user: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${id} not found`);
+    }
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(`Only pending orders can be cancelled`);
+    }
+
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+      return tx.order.update({
+        where: { id },
+        data: { status: OrderStatus.CANCELLED },
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+      });
+    });
+    return this.wrap(cancelled);
   }
 
   private wrap(
