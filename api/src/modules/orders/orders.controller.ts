@@ -247,18 +247,20 @@ export class OrdersController {
   @Roles(Role.ADMIN)
   @ModerateThrottle()
   @ApiOperation({
-    summary: 'ADMIN cancel order by ID'
+    summary: 'ADMIN cancel order by ID',
   })
   @ApiParam({
-    name: 'id', description: 'Order ID'
+    name: 'id',
+    description: 'Order ID',
   })
   @ApiOkResponse({
-    description: 'Order cancelled', type: OrderApiResponseDto
+    description: 'Order cancelled',
+    type: OrderApiResponseDto,
   })
   @ApiNotFoundResponse({
-    description: 'Order not found'
+    description: 'Order not found',
   })
-  async cancelAdmin(@Param('id') id: string){
+  async cancelAdmin(@Param('id') id: string) {
     return await this.orderService.cancel(id);
   }
 
@@ -266,19 +268,20 @@ export class OrdersController {
   @Delete(':id')
   @ModerateThrottle()
   @ApiOperation({
-    summary: 'User cancel order by ID'
+    summary: 'User cancel order by ID',
   })
   @ApiParam({
-    name: 'id', description: 'Order ID'
+    name: 'id',
+    description: 'Order ID',
   })
   @ApiOkResponse({
-    description: 'Order cancelled', type: OrderApiResponseDto
+    description: 'Order cancelled',
+    type: OrderApiResponseDto,
   })
   @ApiNotFoundResponse({
-    description: 'Order not found'
+    description: 'Order not found',
   })
-  async cancel(@Param('id') id: string, @GetUser('id') userId: string){
+  async cancel(@Param('id') id: string, @GetUser('id') userId: string) {
     return await this.orderService.cancel(id, userId);
   }
-
 }

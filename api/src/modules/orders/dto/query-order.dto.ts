@@ -1,13 +1,14 @@
 import { Type } from "class-transformer";
-import { IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { OrderStatus } from '@prisma/client';
 
-export enum OrderStatus{
-    PENDING = 'PENDING',
-    PROCESSING = 'PROCESSING',
-    SHIPPED = 'SHIPPED',
-    DELIVERED = 'DELIVERED',
-    CANCELLED = 'CANCELLED',
-}
+// export enum OrderStatus{
+//     PENDING = 'PENDING',
+//     PROCESSING = 'PROCESSING',
+//     SHIPPED = 'SHIPPED',
+//     DELIVERED = 'DELIVERED',
+//     CANCELLED = 'CANCELLED',
+// }
 
 export class QueryOrderDto {
     @IsOptional()
@@ -19,7 +20,7 @@ export class QueryOrderDto {
     limit? : number = 10;
 
     @IsOptional()
-    @Type(() => Number)
+    @IsEnum(OrderStatus)
     status? : OrderStatus;
 
     @IsOptional()

@@ -8,24 +8,24 @@ class OrderItemDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  productId: string;
+  productId!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
-  quantity: number;
+  quantity!: number;
 
-  @ApiProperty({
-    example: 49.99,
-  })
-  @IsNumber(
-    {
-      maxDecimalPlaces: 2,
-    },
-    { message: 'Price must be a valid number(e.g., 49.99)' },
-  )
-  @Type(() => Number)
-  price: number;
+  // @ApiProperty({
+  //   example: 49.99,
+  // })
+  // @IsNumber(
+  //   {
+  //     maxDecimalPlaces: 2,
+  //   },
+  //   { message: 'Price must be a valid number(e.g., 49.99)' },
+  // )
+  // @Type(() => Number)
+  // price!: number;
 }
 
 export class CreateOrderDto {
@@ -33,10 +33,10 @@ export class CreateOrderDto {
   @IsArray()
   @ValidateNested({each: true})
   @Type(() => OrderItemDto)
-  items: OrderItemDto[];
+  items!: OrderItemDto[];
 
   @ApiProperty({required: false})
   @IsOptional()
   @IsString()
-  shippingAddress: string;
+  shippingAddress!: string;
 }
